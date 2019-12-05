@@ -239,28 +239,32 @@ See example in `migrations/mysql`
     * Numbers indicate run cardinality - Whether certain migrations should be run before others. For example, some tables like `comments` may depend on the `users` table being created first.
   + __A__
     * `A` indicates that the migration contains an `ALTER` command, modifying one of the existing tables. 
+  + Example:
+    * `20000101000000-1-users.js`       - created Jan 1st 2019 (must be created BEFORE `comments` Table due to foreign key constraints)
+    * `20000101000000-2-comments.js`    - created Jan 1st 2019 (must be created AFTER `users` Table due to foreign key constraints)
+    * `20000102000000-errors.js`        - created Jan 2nd 2019 (No foreign key constraints)
 
-```
-#### http://umigrate.readthedocs.org/projects/db-migrate/en/v0.9.x/
+#### Creating new Migrations
 
+If you don't want to just duplicate an existing sample file and alter as needed - Please take the time to [read the docs](https://db-migrate.readthedocs.io/en/latest/).
+
+```shell script
 #### this makes an empty migration called "sample_migration_name"
-node node_modules/db-migrate/bin/db-migrate create sample_migration_name --config "./migrations/database.json" -m "./migrations/migrations"
+npx db-migrate create sample_migration_name --config "./migrations/database.json" -m "./migrations/{TYPE}"
 
 #### paste mysql workbench dumps into the sql files
-
 ```
 
 Run all MySQL migrations
 
 ```
-node node_modules/db-migrate/bin/db-migrate up --config "./migrations/database.json"
+npx db-migrate up --config "./migrations/database.json" -m "./migrations/{TYPE}" -e dev-{TYPE}
 ```
 
-How to seed MySQL
+Run single MySQL migration
 
 ```
-
-#### run a migration that includes data
+npx db-migrate up 00000000000001-MYSQL-SAMPLE --config "./migrations/database.json" -m "./migrations/mysql" -e dev-mysql
 ```
 
 ##### Revert MySQL 
@@ -278,14 +282,11 @@ npx db-migrate down --config "./migrations/database.json" -m migrations/{TYPE} -
 # OR
 
 npx db-migrate reset --config "./migrations/database.json" -m migrations/{TYPE} -e dev-{TYPE}
-
 ```
-
 
 #### GUI 
 
 [MySQL Workbench](https://www.mysql.com/products/workbench/) and [Sequel Pro](http://www.sequelpro.com/) are both recommended.
-
 
 ### MongoDB 
 
