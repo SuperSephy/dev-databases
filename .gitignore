@@ -1,0 +1,10 @@
+.DS_Store
+.vagrant
+.idea
+.bundle
+tmp
+node_modules
+database.json
+config.js
+
+Vagrantfile

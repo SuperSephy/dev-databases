@@ -1,0 +1,62 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  config.vm.provider "libvirt"
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  # Every Vagrant development environment requires a box. You can search for
+  # boxes at https://vagrantcloud.com/search.
+  config.vm.box = "yk0/ubuntu-xenial"
+  config.vm.box_url = "https://vagrantcloud.com/yk0/boxes/ubuntu-xenial/versions/201606082/providers/libvirt.box"
+
+
+  config.vm.synced_folder ".", "/vagrant", :mount_options => ["dmode=777", "fmode=666"]
+  config.vm.network "private_network", ip: "33.33.33.10"
+
+  # --------------------- Database Configs --------------------------
+    # Mongo DB
+    mongo_version         = "3"    # Options: 2.6 | 3 - 3 preferable
+    mongo_enable_remote   = "true"   # remote access enabled when true
+
+  # --------------------- Get Dependencies --------------------------
+  
+    # To reduce repetitive apt-update calls, consolidated repository checks here
+    config.vm.provision :shell, :path => "_install/_dependencies.sh", args: [mongo_version]
+   
+  # --------------------- Database Set Up ---------------------------
+  
+    # MySQL
+    config.vm.network :forwarded_port, guest: 3306, host: 3306
+    config.vm.provision :shell, :path => "_install/mysql.sh"
+
+    # Mongo DB
+    # Provision MongoDB, set up users, and expose ports
+    config.vm.network :forwarded_port, guest: 27017, host: 27017
+    config.vm.provision :shell, :path => "_install/mongo.sh", args: [mongo_enable_remote]
+
+    # RabbitMQ
+    config.vm.network :forwarded_port, guest: 5672, host: 5672      # DB
+    config.vm.network :forwarded_port, guest: 15672, host: 15672    # Management Panel
+    config.vm.provision :shell, :path => "_install/rabbitMQ.sh"
+
+    # Provision Redis (without journaling and with persistence)
+    config.vm.network :forwarded_port, guest: 6379, host: 6379
+    config.vm.provision :shell, :path => "_install/redis.sh", args: "persistent"
+    # NOTE: It is safe to run this to add persistence even if originally provisioned without persistence
+
+    # Elasticsearch
+    config.vm.network :forwarded_port, guest: 9200, host: 9200
+    config.vm.provision :shell, :path => "_install/elasticsearch.sh"
+
+    # EventStore
+    config.vm.network "forwarded_port", guest: 1113, host: 1113
+    config.vm.network "forwarded_port", guest: 2113, host: 2113
+    config.vm.provision :shell, :path => "_install/eventStore.sh"
+end
