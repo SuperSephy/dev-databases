@@ -1,0 +1,19 @@
+{
+	"dev-mysql": {
+		"driver": "mysql",
+		"host": "33.33.33.10",
+		"user": "root",
+		"password": "root",
+		"database":"LocalData",
+		"multipleStatements": true
+	},
+	"dev-mongo": {
+		"driver": "mongodb",
+		"host": "33.33.33.10",
+		"user": "root",
+		"password": "root",
+		"database":"LocalData",
+		"authSource": "admin"
+	},
+	"sql-file" : true
+}

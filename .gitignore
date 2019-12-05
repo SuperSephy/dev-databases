@@ -4,7 +4,6 @@
 .bundle
 tmp
 node_modules
-database.json
 config.js
 
 Vagrantfile

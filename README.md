@@ -34,12 +34,11 @@ bcdedit /set hypervisorlaunchtype off
 
 The solution described requires four components:
 
-*   **libvirt** provides an abstraction language to define and launch VMs, but is normally used just to launch single VMs. It uses XML to represent and define the VM.
-*   **KVM** works exclusively with QEMU and  performs hardware acceleration for x86 VMs with Intel and AMD CPUs. KVM and QEMU are hypervisors that emulate the VMs; the pair is often called KVM/QEMU or just KVM.
-*   **QEMU** is a machine emulator that can allow the host machine to emulate the CPU architecture of the guest machine. Because QEMU does not provide hardware acceleration, it works well with KVM.
-*   **Vagrant** is an orchestration tool that makes it easier to manage groups of VMs by interconnecting them programmatically. Vagrant helps to tie all the components together and provides a user-friendly language to launch suites of VMs. Vagrant allows multiple Cumulus VX VMs to be interconnected to simulate a network. Vagrant also allows Cumulus VX VMs to be interconnected with other VMs (such as Ubuntu or CentOS) to emulate real world networks.
-
- * You must install Vagrant **after** you install libvirt. Vagrant might not properly detect the necessary files if it is installed before libvirt. Cumulus VX requires version 1.7 or later. Version 1.9.1 or later is recommended.
+* **libvirt** provides an abstraction language to define and launch VMs, but is normally used just to launch single VMs. It uses XML to represent and define the VM.
+* **KVM** works exclusively with QEMU and  performs hardware acceleration for x86 VMs with Intel and AMD CPUs. KVM and QEMU are hypervisors that emulate the VMs; the pair is often called KVM/QEMU or just KVM.
+* **QEMU** is a machine emulator that can allow the host machine to emulate the CPU architecture of the guest machine. Because QEMU does not provide hardware acceleration, it works well with KVM.
+* **Vagrant** is an orchestration tool that makes it easier to manage groups of VMs by interconnecting them programmatically. Vagrant helps to tie all the components together and provides a user-friendly language to launch suites of VMs. Vagrant allows multiple Cumulus VX VMs to be interconnected to simulate a network. Vagrant also allows Cumulus VX VMs to be interconnected with other VMs (such as Ubuntu or CentOS) to emulate real world networks.
+  * You must install Vagrant **after** you install libvirt. Vagrant might not properly detect the necessary files if it is installed before libvirt. Cumulus VX requires version 1.7 or later. Version 1.9.1 or later is recommended.
 
 #### Install libvirt
 
@@ -99,10 +98,11 @@ Install Vagrant
 
 You must install Vagrant **after** you install libvirt. Vagrant might not properly detect the necessary files if it is installed before libvirt. Cumulus VX requires version 1.7 or later. Version 1.9.1 or later is recommended.
 
-Rename `/Vagrantfile_UBUNTU` to just `Vagrantfile`. 
+Rename `/Vagrantfile_DEFAULT` OR `/Vagrantfile_UBUNTU` to just `Vagrantfile` (depending on your OS). 
 
-Install Vagrant from the deb package. Cumulus Networks cannot guarantee the functionality of any version of Vagrant. In this guide, Vagrant version 1.9.3 is used.
+Install Vagrant from the deb package. In this guide, Vagrant version 1.9.3 is used.
   
+Ubuntu Shell Scripts (Mac and Windows should use the Installer)
 ```shell script    
 user@ubuntubox:~$ wget [https://releases.hashicorp.com/vagrant/1.9.3/vagrant_1.9.3_x86_64.deb](https://releases.hashicorp.com/vagrant/1.9.3/vagrant_1.9.3_x86_64.deb)
 --2017-06-23 20:01:43--  [https://releases.hashicorp.com/vagrant/1.9.3/vagrant_1.9.3_x86_64.deb](https://releases.hashicorp.com/vagrant/1.9.3/vagrant_1.9.3_x86_64.deb)
@@ -117,7 +117,7 @@ vagrant_1.9.3_x86_64.deb
 2017-06-23 20:03:02 (1.07 MB/s) - ‘vagrant_1.9.3_x86_64.deb’ saved [87666544/87666544]
 ```
     
-Install Vagrant using dpkg:
+Install Vagrant using dpkg (Mac and Windows should use the Installer):
     
 ```shell script
 user@ubuntubox:~$ sudo dpkg -i vagrant_1.9.3_x86_64.deb
@@ -135,7 +135,7 @@ user@ubuntubox:~$ vagrant --version
 Vagrant 1.9.3
 ```
     
-Install the necessary plugins for Vagrant.
+Install the necessary plugins for Vagrant (Ubuntu only).
 
 But first, you'll need to install ruby-dev if you don't have it: `sudo apt-get install ruby-dev`
     
@@ -149,18 +149,21 @@ Installing the 'vagrant-libvirt' plugin. This can take a few minutes...
 Installed the plugin 'vagrant-libvirt (0.0.35)'!
 Vagrant plugin installation is unique to each user; make sure to install plugins as the user who will run the simulations.
 ```
+---
 
-# Migration Setup
+## Usage
 
-A note about db-migrate: Do not install globally. There is a big syntax shift between 0.9, 0.10 and 0.10 beta.
+Once VirtualBox/libvert, and Vagrant are installed - you should be able to run the `vagrant up` command and the container should build.
+If you have any issues, you may have to rely on some debugging, please notate any fixes here to keep everyone else informed as well!
 
+> Note: The mongo user creation step is called after an arbitrary 20 seconds to allow the service time to restart after changing the etc/mongod.conf - depending on your machine this may still not be long enough. You can either elongate the sleep time in the mongo-install.sh file or use `vagrant ssh` followed by `mongo` to run lines 8-10 starting at the `db.createUser` to achieve the same effect.
 
- Install
-  $ npm install
+### Migration Setup
 
-#### Copy database configs, customize if necessary
-  $ cp mongo/database.dist.json mongo/database.json
-  $ cp migrations/database.dist.json migrations/database.json
+Install
+ ```shell script
+$ npm install
+```
 
 #### Preferred Install/Start - runs `vagrant up` and refreshes migrations for you
  
@@ -172,18 +175,16 @@ $ ./run.sh
 
 ```shell script
 $ vagrant up
-$ node node_modules/db-migrate/bin/db-migrate up --config "./migrations/database.json" -m "./migrations/migrations"
+$ npm run mysql
+$ npm run mongo
 ```
 
-#### Refresh databases
+#### Refresh databases (empties databases and re-seeds)
 
 ```shell script
 $ ./refresh.sh
 ```
 
-End of the `vagrant up` provision (long terminal text after `vagrant up`) should end with JSON outputs if mongo was correctly established. If no JSON and/or `vagrant up` closes with something like "Vagrant exited with exit code 0" - run `vagrant provision` and that should fix it!
-
-Note: The mongo user creation step is called after an arbitrary 20 seconds to allow the service time to restart after changing the etc/mongod.conf - depending on your machine this may still not be long enough. You can either elongate the sleep time in the mongo-install.sh file or use `vagrant ssh` followed by `mongo` to run lines 8-10 starting at the `db.createUser` to achieve the same effect.
 
 ## Services
 
@@ -195,7 +196,7 @@ MySQL is installed as part of the Vagrant Provision.
 # Run "vagrant up" from this directory to get MySQL up (and "vagrant suspend || vagrant halt" to bring it down)
 ```
 
-Connect via command line
+Connect via command line (if you have the MySQL CLI installed)
 
 ```
 mysql -h 33.33.33.10 -uroot -proot -P 3306
@@ -204,7 +205,7 @@ mysql -h 33.33.33.10 -uroot -proot -P 3306
 Connect via MySQL Workbench, configure a new connection
 
 ```
-host: 33.33.33.1
+host: 33.33.33.10
 port: 3306
 user: root
 password: root
@@ -226,14 +227,18 @@ MySQL created with "LocalData" as Database and "root" as the User.
 
 #### How to make a MySQL migration
 
-##### Naming Convention 
+See example in `migrations/mysql`
 
-- __REQUIRED__
+##### File Naming Convention 
+
+- __PREFIX__ (Required)
   + File Names MUST start with at least 12 numbers (default YYYYMMDDhhmmss)
-- __Numbers__
-  + Numbers indicate run cardinality - Whether certain migrations should be run before others. For example, some listbuilder tables like `lists` depend on the `users` table being created first.
-- __A__
-  + `A` indicates that the migration contains an `ALTER` command, modifying one of the existing tables. 
+  + This is what the `db-migrate` package uses to look for migration files
+- __PRIORITY__
+  + __Numbers__
+    * Numbers indicate run cardinality - Whether certain migrations should be run before others. For example, some tables like `comments` may depend on the `users` table being created first.
+  + __A__
+    * `A` indicates that the migration contains an `ALTER` command, modifying one of the existing tables. 
 
 ```
 #### http://umigrate.readthedocs.org/projects/db-migrate/en/v0.9.x/
@@ -268,11 +273,11 @@ Notes:
   + Deletes all databases and removes them from the migrations table.
 
 ```
-node node_modules/db-migrate/bin/db-migrate down --config "./migrations/database.json"
+npx db-migrate down --config "./migrations/database.json" -m migrations/{TYPE} -e dev-{TYPE}
 
-# or
+# OR
 
-node node_modules/db-migrate/bin/db-migrate reset --config "./migrations/database.json"
+npx db-migrate reset --config "./migrations/database.json" -m migrations/{TYPE} -e dev-{TYPE}
 
 ```
 
@@ -289,10 +294,10 @@ MongoDB is installed as part of the Vagrant Provision.
 #### Connect
 
 ```
-#### From your terminal: 
+# From your terminal: 
 mongo LocalData --host 33.33.33.10 -uroot -proot --authenticationDatabase "admin"
 
-#### From Vagrant box (i.e. after running `vagrant ssh`)
+# From Vagrant box (i.e. after running `vagrant ssh`)
 mongo LocalData -u "root" -p "root" --authenticationDatabase "admin"
 ```
 
@@ -306,7 +311,7 @@ mongo LocalData -u "root" -p "root" --authenticationDatabase "admin"
 #### Make a database
 
 ```
-use newDatabase
+use newDatabaseName
 ```
 
 #### Create a user (root user created for you)
@@ -317,7 +322,7 @@ db.createUser(
       user: "userName",
       pwd: "passwordValue",
       roles: [
-         { role: "readWrite", db: "databaseUserHasPermissionsOn" }
+         { role: "readWrite", db: "newDatabaseName" }
       ]
     })
 ```
@@ -332,7 +337,7 @@ Reference the MongoDB in the dev area of your project.
     "port":27017,
     "user":"root",
     "password":"root",
-    "database":"admin"        # authentication Database
+    "authSource":"admin"        # authentication Database
 },
 
 ```
@@ -366,13 +371,7 @@ db.createUser({
 
 #### How to make a MongoDB migration
 
-Seed it by putting insert/createCollection statements in logically names JS files
-
-```
-mongo
-load('/mongo/migrations/_addresses.js')
-db.addresses.find()
-```
+See example provided in `migrations/mongo`
 
 #### Mongo Tools
 
@@ -394,24 +393,16 @@ Mongo Stat
 mongostat -h 33.33.33.10:27017 -u 'root' -p 'root' --authenticationDatabase 'admin'
 ```
 
+### GUI
 
-## GUIs
+[Robomongo](https://robomongo.org/download) seems to be a pretty functional GUI for accessing the DB in a visual way.
 
 ### EventStore
 
 - http://33.33.33.10:2113/web/index.html#/
 - `admin` / `changeit` (default)
 
-### Mongo
-
-[Robomongo](https://robomongo.org/download) seems to be a pretty functional GUI for accessing the DB in a visual way.
-
-### MySQL
-
-- Sequel Pro (Mac)
-- MySQL Workbench
-
-### RabbitMQ (June 2016 - RB)
+### RabbitMQ
 
 #### Admin Panel
 
@@ -427,7 +418,7 @@ You should see terminal output showing a successful connection and that the work
 
 Then you can run an instance of `$ DEBUG=* node ./rabbitMQ/send.js` and see the message sent from one terminal and recieved round-robin by the workers you started up before.
 
-### Redis (June 2016 - RB)
+### Redis
 
 If you install the redis-cli (installed during redis install `brew install redis`) you can access the service from the host machine using:
 `$ redis-cli`
@@ -435,9 +426,9 @@ and confirm connection using the `$ ping` -> `PONG` response.
 
 Not many GUI options, but after trying a few [FastoRedis](http://www.fastoredis.com/) seems ok. 
 
-### Elasticsearch (August 2016 - MT)
+### ElasticSearch
 
-Basic install of Elasticsearch. No GUI option yet.
+Basic install of ElasticSearch. No GUI option yet.
 
 Custom config values (in this repo /elasticsearch/elasticsearch.yml):
 ````
@@ -446,7 +437,7 @@ node.name: es-node-1
 network.host: 33.33.33.10
 ````
 
-You can test if Elasticsearch is running/responding by issuing the following command:
+You can test if ElasticSearch is running/responding by issuing the following command:
 
 ```shell script
 curl 'http://33.33.33.10:9200/?pretty'

@@ -12,7 +12,7 @@ const fileName = path.parse(__filename).name;
  * We receive the db-migrate dependency from db-migrate initially.
  * This enables us to not have to rely on NODE_PATH.
  */
-exports.setup = function(options, seedLink) {
+exports.setup = (options, seedLink) => {
   dbm = options.dbmigrate;
   type = dbm.dataType;
   seed = seedLink;
